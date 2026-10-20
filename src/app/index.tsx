@@ -1,40 +1,43 @@
-import { AntiWorkoutCalendar } from '@/components/AntiWorkoutCalendar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { WebBadge } from '@/components/web-badge';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AntiWorkoutHub } from '../components/AntiWorkoutHub';
 
 export default function HomeScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <ThemedText type="title">🛋️ Dashboard</ThemedText>
-        </View>
-        <AntiWorkoutCalendar />
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={true}
+        >
+          
+          <ThemedText type="title" style={styles.dashboardTitle}>
+            Ozempic Dasboard
+          </ThemedText>
+          <AntiWorkoutHub />
+
+        </ScrollView>
+        {Platform.OS === 'web' && <WebBadge />}
       </SafeAreaView>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
+  container: { flex: 1, justifyContent: 'center', flexDirection: 'row' },
+  safeArea: { flex: 1, maxWidth: MaxContentWidth },
+  scrollView: { flex: 1, width: '100%' },
+  scrollContent: { 
+    alignItems: 'center', 
+    gap: Spacing.four, 
     paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.four,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    paddingTop: Spacing.two, 
+    paddingBottom: BottomTabInset + Spacing.three 
   },
-  header: {
-    alignSelf: 'stretch',
-    marginBottom: Spacing.two,
-  },
+  dashboardTitle: { alignSelf: 'flex-start', marginVertical: Spacing.two, fontSize: 24, fontWeight: 'bold' },
 });
