@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Spacing } from '../constants/theme';
-import { ThemedView } from './themed-view';
-
 export function CardioRestConverter() {
   const [minutes, setMinutes] = useState('');
   const [workoutType, setWorkoutType] = useState('running'); 
@@ -40,7 +38,7 @@ export function CardioRestConverter() {
 
   return (
     <View style={styles.wrapper}>
-      <ThemedView type="backgroundElement" style={styles.card}>
+       <View style={styles.card}> 
         <Text style={styles.cardTitle}> Cardio-to-Rest Converter</Text>
         <Text style={styles.subtitle}>Accidentally exercised? Input your metrics below to claim your laziness tokens.</Text>
 
@@ -84,7 +82,7 @@ export function CardioRestConverter() {
             <Text style={styles.rewardText}> Unlocked Perk: {result.reward}</Text>
           </View>
         )}
-      </ThemedView>
+      </View>
     </View>
   );
 }

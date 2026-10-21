@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { Spacing } from '../constants/theme';
-import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
 
 const MASTER_ANTI_WORKOUT_DB = [
     "Every muscle deserves a cheat day. Especially today.",
@@ -24,80 +22,72 @@ const MASTER_ANTI_WORKOUT_DB = [
 ];
 
 export function AntiWorkoutCalendar() {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const [selectedDate, setSelectedDate] = useState<string>(todayStr);
-    const [dailyMessage, setDailyMessage] = useState<string>('');
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+  const [dailyMessage, setDailyMessage] = useState<string>('');
 
-    useEffect(() => {
-        const dateHashNumber = selectedDate.split('-').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const quoteIndex = Math.abs(dateHashNumber) % MASTER_ANTI_WORKOUT_DB.length;
-        setDailyMessage(MASTER_ANTI_WORKOUT_DB[quoteIndex]);
-    }, [selectedDate]);
+  useEffect(() => {
+    const parsedDate = new Date(selectedDate + 'T12:00:00');
+    
+    const totalDays = Math.floor(parsedDate.getTime() / (1000 * 60 * 60 * 24));
+    
+    const quoteIndex = Math.abs(totalDays) % MASTER_ANTI_WORKOUT_DB.length;
+    setDailyMessage(MASTER_ANTI_WORKOUT_DB[quoteIndex]);
+  }, [selectedDate]);
 
-    return (
-        <View style={styles.wrapper}>
-            <View style={styles.calendarWrapper}>
-                <Calendar
-                    current={todayStr}
-                    onDayPress={(day) => setSelectedDate(day.dateString)}
-                    markedDates={{
-                        [selectedDate]: { selected: true, disableTouchEvent: false, selectedColor: '#ff4757' }
-                    }}
-                    theme={{
-                        selectedDayBackgroundColor: '#ff4757',
-                        todayTextColor: '#ff4757',
-                        arrowColor: '#ff4757',
-                        // @ts-ignore
+  return (
+    <View style={styles.wrapper}>
+      <View style={styles.calendarWrapper}>
+        <Calendar
+          current={todayStr}
+          onDayPress={(day) => setSelectedDate(day.dateString)}
+          markedDates={{
+            [selectedDate]: { selected: true, disableTouchEvent: false, selectedColor: '#ff4757' }
+          }}
+          theme={{
+            selectedDayBackgroundColor: '#ff4757',
+            todayTextColor: '#ff4757',
+            arrowColor: '#ff4757',
+            // @ts-ignore
+            headerStyle: { paddingVertical: 12 },
+          }}
+        />
+      </View>
 
-                        headerStyle: { paddingVertical: 12 },
-                    }}
-                />
-            </View>
-
-            <ThemedView type="backgroundElement" style={styles.messageContainer}>
-                <ThemedText type="subtitle" style={styles.messageTitle}>
-                    Inspiration for {selectedDate}:
-                </ThemedText>
-
-                <ThemedText style={styles.messageBody}>
-                    "{dailyMessage}"
-                </ThemedText>
-            </ThemedView>
-        </View>
-    );
+      <View style={styles.messageContainer}>
+        <Text style={styles.messageTitle}>
+          Inspiration for {selectedDate}:
+        </Text>
+        <Text style={styles.messageBody}>
+          "{dailyMessage}"
+        </Text>
+      </View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    wrapper: {
-        alignSelf: 'stretch',
-        gap: Spacing.three,
-    },
-    calendarWrapper: {
-        borderRadius: Spacing.four,
-        overflow: 'hidden',
-        backgroundColor: '#ffffff',
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        shadowOffset: { width: 0, height: 2 },
-    },
-    messageContainer: {
-        gap: Spacing.two,
-        padding: Spacing.four,
-        borderRadius: Spacing.four,
-        borderLeftWidth: 5,
-        borderLeftColor: '#ff4757',
-        minHeight: 100,
-        justifyContent: 'center',
-    },
-    messageTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    messageBody: {
-        fontSize: 15,
-        fontStyle: 'italic',
-        lineHeight: 22,
-    },
+  wrapper: { alignSelf: 'stretch', gap: Spacing.three },
+  calendarWrapper: {
+    borderRadius: Spacing.four,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  messageContainer: {
+    gap: Spacing.two,
+    padding: Spacing.four,
+    borderRadius: Spacing.four,
+    backgroundColor: '#fff5f5',
+    borderLeftWidth: 5,
+    borderLeftColor: '#ff4757',
+    minHeight: 100,
+    justifyContent: 'center',
+  },
+  messageTitle: { fontSize: 16, fontWeight: 'bold', color: '#2d4150' },
+  messageBody: { fontSize: 15, fontStyle: 'italic', lineHeight: 22, color: '#4a5568' },
 });
