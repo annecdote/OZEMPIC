@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { WebBadge } from '@/components/web-badge';
@@ -41,3 +42,10 @@ const styles = StyleSheet.create({
   },
   dashboardTitle: { alignSelf: 'flex-start', marginVertical: Spacing.two, fontSize: 24, fontWeight: 'bold' },
 });
+=======
+import { Redirect } from 'expo-router';
+
+export default function Index() {
+  return <Redirect href="/NUTRITION/nutrition" />;
+}
+>>>>>>> 35bf8c7 (nutrition screen)
