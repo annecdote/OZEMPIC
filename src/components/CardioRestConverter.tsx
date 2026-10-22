@@ -1,85 +1,173 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Spacing } from '../constants/theme';
+
+interface LogItem {
+  id: string;
+  date: string;
+  workout: string;
+  mins: string;
+  restHours: number;
+}
+
 export function CardioRestConverter() {
   const [minutes, setMinutes] = useState('');
-  const [workoutType, setWorkoutType] = useState('running'); 
-  const [result, setResult] = useState<{ couchHours: number; reward: string } | null>(null);
+  const [type, setType] = useState('running'); 
+  const [hours, setHours] = useState<number | null>(null);
+  const [perk, setPerk] = useState('');
+  const [logs, setLogs] = useState<LogItem[]>([]);
 
-  const handleCalculate = () => {
-    const minNum = parseFloat(minutes);
-    if (isNaN(minNum) || minNum <= 0) return;
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const data = localStorage.getItem('workout_logs');
+        if (data) {
+          setLogs(JSON.parse(data));
+        }
+      }
+    } catch (e) {
+      console.log("Storage check loaded");
+    }
+  }, []);
 
-    let multiplier = 1;
-    let customReward = '';
+  const calculateRest = () => {
+    const num = parseFloat(minutes);
+    if (isNaN(num) || num <= 0) return;
 
-    if (workoutType === 'running') {
-      multiplier = 6; 
-      customReward = 'Guilt-Free Reality TV Binging and an extra slice of pizza.';
-    } else if (workoutType === 'lifting') {
-      multiplier = 4; 
-      customReward = 'Uninterrupted couch nap time and complete authority over the TV remote.';
-    } else {
-      multiplier = 3; 
-      customReward = 'Snoozing your morning alarm up to 3 times tomorrow without remorse.';
+    let totalHours = 0;
+    let text = '';
+
+    if (type === 'running') {
+      totalHours = parseFloat(((num * 6) / 60).toFixed(1));
+      if (num <= 20) {
+        text = 'Go eat some pizza and watch a movie.';
+      } else if (num <= 45) {
+        text = 'You earned a huge burger and gaming all afternoon.';
+      } else {
+        text = 'Take the next 2 days off from the gym completely.';
+      }
+    } else if (type === 'lifting') {
+      totalHours = parseFloat(((num * 4) / 60).toFixed(1));
+      if (num <= 20) {
+        text = 'Go take a 30 minute nap on the couch.';
+      } else if (num <= 45) {
+        text = 'No alarm clock tomorrow, sleep in as late as you want.';
+      } else {
+        text = 'Order whatever you want for dinner tonight guilt-free.';
+      }
+    } else if (type === 'cycling') {
+      totalHours = parseFloat(((num * 3) / 60).toFixed(1));
+      if (num <= 20) {
+        text = 'Snooze your morning alarm a couple times.';
+      } else if (num <= 45) {
+        text = 'Go grab an iced coffee and take it easy.';
+      } else {
+        text = 'Sit on the couch for the rest of the night.';
+      }
     }
 
-    const totalMinutesEarned = minNum * multiplier;
-    const hours = parseFloat((totalMinutesEarned / 60).toFixed(1));
+    setHours(totalHours);
+    setPerk(text);
 
-    setResult({
-      couchHours: hours,
-      reward: customReward
-    });
+    const newItem: LogItem = {
+      id: Date.now().toString(),
+      date: new Date().toLocaleDateString(),
+      workout: type,
+      mins: minutes,
+      restHours: totalHours
+    };
+
+    const newLogs = [newItem, ...logs].slice(0, 4);
+    setLogs(newLogs);
+
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('workout_logs', JSON.stringify(newLogs));
+      }
+    } catch (e) {
+      console.log("Saved local state");
+    }
     
     setMinutes('');
     Keyboard.dismiss();
   };
 
-  return (
-    <View style={styles.wrapper}>
-       <View style={styles.card}> 
-        <Text style={styles.cardTitle}> Cardio-to-Rest Converter</Text>
-        <Text style={styles.subtitle}>Accidentally exercised? Input your metrics below to claim your laziness tokens.</Text>
+  const clearLogs = () => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem('workout_logs');
+      }
+    } catch (e) {}
+    setLogs([]);
+    setHours(null);
+    setPerk('');
+  };
 
-        <View style={styles.selectorRow}>
-          {['running', 'lifting', 'cycling'].map((type) => (
+  return (
+    <View style={styles.mainContainer}>
+      <View style={styles.box}> 
+        <Text style={styles.header}>Cardio-to-Rest Converter</Text>
+        <Text style={styles.subtext}>Enter your workout duration below to see how many hours you should nap today.</Text>
+
+        <View style={styles.buttonRow}>
+          {['running', 'lifting', 'cycling'].map((workoutOption) => (
             <TouchableOpacity
-              key={type}
-              style={[styles.selectorButton, workoutType === type && styles.activeSelector]}
+              key={workoutOption}
+              style={[styles.btn, type === workoutOption && styles.btnActive]}
               onPress={() => {
-                setWorkoutType(type);
-                setResult(null);
+                setType(workoutOption);
+                setHours(null);
+                setPerk('');
               }}
             >
-              <Text style={[styles.selectorText, workoutType === type && styles.activeSelectorText]}>
-                {type.toUpperCase()}
+              <Text style={[styles.btnText, type === workoutOption && styles.btnTextActive]}>
+                {workoutOption}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Duration of Mistake (Minutes):</Text>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Workout Time (Minutes):</Text>
           <TextInput
-            style={styles.textInput}
-            placeholder="e.g., 30"
-            placeholderTextColor="#888"
+            style={styles.field}
+            placeholder="Example: 30"
+            placeholderTextColor="#999"
             keyboardType="numeric"
             value={minutes}
             onChangeText={setMinutes}
           />
         </View>
 
-        <TouchableOpacity style={styles.calcButton} onPress={handleCalculate}>
-          <Text style={styles.buttonText}> Cash Out Effort Tokens</Text>
+        <TouchableOpacity style={styles.submitBtn} onPress={calculateRest}>
+          <Text style={styles.submitBtnText}>Calculate Rest Time</Text>
         </TouchableOpacity>
-        {result && (
-          <View style={styles.resultCard}>
-            <Text style={styles.resultHeader}> Couch Tokens Cleared!</Text>
-            <Text style={styles.resultBody}>
-              Your effort has successfully unlocked <Text style={styles.boldText}>{result.couchHours} hours</Text> of authorized, mandatory lounging.
+        
+        {hours !== null && (
+          <View style={styles.resultsBox}>
+            <Text style={styles.resultsTitle}>Calculation Complete!</Text>
+            <Text style={styles.resultsText}>
+              You earned <Text style={styles.redHighlight}>{hours} hours</Text> of couch time.
             </Text>
-            <Text style={styles.rewardText}> Unlocked Perk: {result.reward}</Text>
+            <Text style={styles.perkText}>Perk: {perk}</Text>
+          </View>
+        )}
+
+        {logs.length > 0 && (
+          <View style={styles.historyBox}>
+            <View style={styles.historyHeader}>
+              <Text style={styles.historyTitle}>Saved Logs:</Text>
+              <TouchableOpacity onPress={clearLogs}>
+                <Text style={styles.deleteText}>Clear History</Text>
+              </TouchableOpacity>
+            </View>
+            {logs.map((item) => (
+              <View key={item.id} style={styles.historyRow}>
+                <Text style={styles.historyText}>
+                  - {item.date}: {item.mins}m of {item.workout} = {item.restHours}h rest
+                </Text>
+              </View>
+            ))}
           </View>
         )}
       </View>
@@ -88,119 +176,143 @@ export function CardioRestConverter() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    alignSelf: 'stretch',
-    marginTop: Spacing.three,
+  mainContainer: { 
+    alignSelf: 'stretch', 
+    marginTop: Spacing.three 
   },
-  card: {
-    padding: Spacing.four,
-    borderRadius: Spacing.four,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+  box: { 
     backgroundColor: '#ffffff',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2d4150',
-    marginBottom: Spacing.one,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: '#718096',
-    marginBottom: Spacing.four,
-    lineHeight: 18,
-  },
-  selectorRow: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-    marginBottom: Spacing.four,
-  },
-  selectorButton: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: Spacing.two,
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    alignItems: 'center',
-    backgroundColor: '#f8fafc',
-  },
-  activeSelector: {
-    backgroundColor: '#ff4757',
-    borderColor: '#ff4757',
-  },
-  selectorText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#64748b',
-  },
-  activeSelectorText: {
-    color: '#ffffff',
-  },
-  inputGroup: {
-    marginBottom: Spacing.three,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4a5568',
-    marginBottom: Spacing.one,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: Spacing.two,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    fontSize: 15,
-    color: '#334155',
-    backgroundColor: '#f8fafc',
-  },
-  calcButton: {
-    backgroundColor: '#2d4150',
-    paddingVertical: 12,
-    borderRadius: Spacing.two,
-    alignItems: 'center',
-    marginTop: Spacing.two,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  resultCard: {
-    marginTop: Spacing.four,
+    borderColor: '#e2e8f0', 
+    borderRadius: Spacing.four, 
+    borderWidth: 1, 
     padding: Spacing.four,
-    backgroundColor: '#eff6ff',
-    borderRadius: Spacing.three,
-    borderLeftWidth: 5,
-    borderLeftColor: '#3b82f6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3
   },
-  resultHeader: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#1e40af',
-    marginBottom: Spacing.one,
+  header: { 
+    color: '#2d4150', 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    marginBottom: 5 
   },
-  resultBody: {
+  subtext: { 
+    color: '#718096', 
+    fontSize: 13, 
+    lineHeight: 18,
+    marginBottom: 15 
+  },
+  buttonRow: { 
+    flexDirection: 'row', 
+    gap: 8, 
+    marginBottom: 15 
+  },
+  btn: { 
+    alignItems: 'center', 
+    backgroundColor: '#f8fafc', 
+    borderColor: '#cbd5e1', 
+    borderRadius: 6, 
+    borderWidth: 1, 
+    flex: 1, 
+    paddingVertical: 8 
+  },
+  btnActive: { 
+    backgroundColor: '#ff4757', 
+    borderColor: '#ff4757' 
+  },
+  btnText: { 
+    color: '#64748b', 
+    fontSize: 13 
+  },
+  btnTextActive: { 
+    color: '#ffffff',
+    fontWeight: 'bold'
+  },
+  inputContainer: { 
+    marginBottom: 15 
+  },
+  inputLabel: { 
+    color: '#4a5568', 
+    fontSize: 14, 
+    fontWeight: '600', 
+    marginBottom: 5 
+  },
+  field: { 
+    backgroundColor: '#f8fafc', 
+    borderColor: '#cbd5e1', 
+    borderRadius: 6, 
+    borderWidth: 1, 
+    color: '#334155', 
+    fontSize: 14, 
+    paddingHorizontal: 10, 
+    paddingVertical: 8 
+  },
+  submitBtn: { 
+    alignItems: 'center', 
+    backgroundColor: '#2d4150', 
+    borderRadius: 6, 
+    paddingVertical: 12 
+  },
+  submitBtnText: { 
+    color: '#ffffff', 
     fontSize: 14,
-    color: '#1e3a8a',
-    lineHeight: 20,
-    marginBottom: Spacing.two,
+    fontWeight: 'bold' 
   },
-  boldText: {
-    fontWeight: 'bold',
+  resultsBox: { 
+    backgroundColor: '#eff6ff', 
+    borderRadius: 6, 
+    borderLeftColor: '#3b82f6', 
+    borderLeftWidth: 4, 
+    marginTop: 15, 
+    padding: 12 
+  },
+  resultsTitle: { 
+    color: '#1e40af', 
+    fontSize: 14, 
+    fontWeight: 'bold', 
+    marginBottom: 2 
+  },
+  resultsText: { 
+    color: '#1e3a8a', 
+    fontSize: 13, 
+    marginBottom: 4 
+  },
+  redHighlight: { 
     color: '#ff4757',
+    fontWeight: 'bold' 
   },
-  rewardText: {
-    fontSize: 13,
-    color: '#1e3a8a',
-    fontStyle: 'italic',
-    fontWeight: '500',
+  perkText: { 
+    color: '#1e3a8a', 
+    fontSize: 13, 
+    fontStyle: 'italic' 
   },
+  historyBox: { 
+    borderTopColor: '#e2e8f0', 
+    borderTopWidth: 1, 
+    marginTop: 15, 
+    paddingTop: 10 
+  },
+  historyHeader: { 
+    alignItems: 'center', 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    marginBottom: 8 
+  },
+  historyTitle: { 
+    color: '#4a5568', 
+    fontSize: 13, 
+    fontWeight: 'bold' 
+  },
+  deleteText: { 
+    color: '#ff4757', 
+    fontSize: 12 
+  },
+  historyRow: { 
+    paddingVertical: 2 
+  },
+  historyText: { 
+    color: '#64748b',
+    fontSize: 13 
+  }
 });
