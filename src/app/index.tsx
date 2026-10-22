@@ -1,98 +1,116 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+import { colors } from '../theme';
 
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.logo}>😴</Text>
+        <Text style={styles.name}>OZEMPIC</Text>
+        <Text style={styles.text}>Your daily excuse to do nothing</Text>
+      </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <View style={styles.card}>
+        <Text style={styles.small}>WELCOME TO YOUR SAFE SPACE</Text>
+        <Text style={styles.emoji}>🛋️</Text>
+        <Text style={styles.title}>Welcome to your unproductive era.</Text>
+        <Text style={styles.text}>
+          Life is short. Your bed is comfortable. You do the math.
+        </Text>
+        <Text style={styles.message}>No pressure. No guilt. Just vibes.</Text>
+      </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+      <View style={styles.reminder}>
+        <Text style={styles.title}>💗 Today's reminder</Text>
+        <Text style={styles.text}>
+          You don't have to be productive every day.
+        </Text>
+      </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.navigate('/explore')}
+      >
+        <Text style={styles.buttonText}>FIND MY EXCUSE →</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.footer}>Take it easy. You deserve it ♡</Text>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: colors.background,
+    padding: 20,
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
+  header: {
     alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    marginBottom: 25,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  logo: {
+    fontSize: 40,
+  },
+  name: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  text: {
+    color: colors.textSecondary,
+    marginTop: 8,
+    lineHeight: 22,
+  },
+  card: {
+    backgroundColor: colors.card,
+    padding: 22,
+    borderRadius: 25,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  small: {
+    color: colors.accent,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  emoji: {
+    fontSize: 35,
   },
   title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginTop: 10,
+  },
+  message: {
+    color: colors.accent,
+    marginTop: 20,
+  },
+  reminder: {
+    backgroundColor: colors.secondary,
+    padding: 18,
+    borderRadius: 20,
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: colors.primary,
+    padding: 18,
+    borderRadius: 15,
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  footer: {
     textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+    marginTop: 20,
+    color: colors.textSecondary,
   },
 });

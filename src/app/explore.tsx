@@ -1,180 +1,169 @@
-import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import {
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
-import { ExternalLink } from '@/components/external-link';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors } from '../theme';
 
-export default function TabTwoScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-  const theme = useTheme();
+const excuses = [
+  'My bed needs me.',
+  'I am too tired today.',
+  'My motivation is on vacation.',
+  'I would rather eat fries.',
+  'My couch needs me.',
+  'Today is a lazy day.',
+  'I need a break.',
+  'Maybe tomorrow!',
+];
 
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
+export default function ExcusesScreen() {
+  const router = useRouter();
+  const [excuse, setExcuse] = useState('');
+  const [show, setShow] = useState(false);
+
+  function getExcuse() {
+    const number = Math.floor(Math.random() * excuses.length);
+    setExcuse(excuses[number]);
+    setShow(true);
+  }
 
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
-          </ThemedText>
+    <SafeAreaView style={styles.container}>
+      <TouchableOpacity onPress={() => router.navigate('/')}>
+        <Text style={styles.back}>← Back to Home</Text>
+      </TouchableOpacity>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
-                />
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
-        </ThemedView>
+      <Text style={styles.title}>The Excuse Room</Text>
+      <Text style={styles.text}>Can't work out today? We've got you.</Text>
 
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+      <View style={styles.card}>
+        <Text style={styles.emoji}>😴</Text>
+        <Text style={styles.heading}>Need a good excuse?</Text>
+        <Text style={styles.text}>Let us help you relax.</Text>
 
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
-              </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
+        <TouchableOpacity style={styles.button} onPress={getExcuse}>
+          <Text style={styles.buttonText}>SPIN THE WHEEL 🎲</Text>
+        </TouchableOpacity>
+      </View>
 
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
-            </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.imageReact} />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+      <View style={styles.reminder}>
+        <Text style={styles.heading}>💗 Remember</Text>
+        <Text style={styles.text}>Taking a break is okay.</Text>
+      </View>
 
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+      <Modal visible={show} transparent animationType="fade">
+        <View style={styles.overlay}>
+          <View style={styles.popup}>
+            <TouchableOpacity onPress={() => setShow(false)}>
+              <Text style={styles.close}>✕</Text>
+            </TouchableOpacity>
 
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
-    </ScrollView>
+            <Text style={styles.emoji}>🛋️</Text>
+            <Text style={styles.heading}>YOUR EXCUSE</Text>
+            <Text style={styles.excuse}>{excuse}</Text>
+
+            <TouchableOpacity style={styles.button} onPress={getExcuse}>
+              <Text style={styles.buttonText}>Give Me Another 🎲</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setShow(false)}>
+              <Text style={styles.done}>I'm satisfied</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
   container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: 20,
   },
-  titleContainer: {
-    gap: Spacing.three,
+  back: {
+    color: colors.accent,
+    marginBottom: 25,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 10,
+  },
+  text: {
+    color: colors.textSecondary,
+    marginTop: 8,
+    lineHeight: 22,
+  },
+  card: {
+    backgroundColor: colors.card,
+    padding: 22,
+    borderRadius: 25,
+    marginTop: 25,
     alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  centerText: {
-    textAlign: 'center',
+  emoji: {
+    fontSize: 45,
+    margin: 15,
   },
-  pressed: {
-    opacity: 0.7,
+  heading: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.text,
   },
-  linkButton: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: 'center',
-    gap: Spacing.one,
+  button: {
+    backgroundColor: colors.primary,
+    padding: 17,
+    borderRadius: 15,
     alignItems: 'center',
-  },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-  },
-  collapsibleContent: {
-    alignItems: 'center',
-  },
-  imageTutorial: {
+    marginTop: 25,
     width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
   },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
+  buttonText: {
+    color: colors.text,
+    fontWeight: 'bold',
+  },
+  reminder: {
+    backgroundColor: colors.secondary,
+    padding: 18,
+    borderRadius: 20,
+    marginTop: 20,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  popup: {
+    backgroundColor: colors.background,
+    padding: 25,
+    borderRadius: 25,
+    alignItems: 'center',
+  },
+  close: {
+    fontSize: 25,
+    color: colors.text,
+  },
+  excuse: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.text,
+    textAlign: 'center',
+    margin: 20,
+  },
+  done: {
+    color: colors.textSecondary,
+    marginTop: 20,
   },
 });
