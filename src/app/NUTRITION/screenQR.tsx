@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BarcodeFoodResult, lookupBarcode } from '../../lib/nutritionAPI';
+import { BarcodeFoodResult, lookupBarcode, proteinStarRating } from '../../lib/nutritionAPI';
+import { NUTRITION_SCORE_STORAGE_KEY } from '../../lib/storageKeys';
 import { colors, styles } from '../../styles';
 
 export default function QRScannerScreen() {
@@ -13,7 +15,10 @@ export default function QRScannerScreen() {
   const [product, setProduct] = useState<BarcodeFoodResult | null>(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState('');
+  const [savingScore, setSavingScore] = useState(false);
+  const [scoreSaveError, setScoreSaveError] = useState('');
   const scanLocked = useRef(false);
+  const acceptLocked = useRef(false);
 
   const handleScan = async (data: string) => {
     if (scanLocked.current) return;
@@ -21,13 +26,17 @@ export default function QRScannerScreen() {
     setScannedData(data);
     setProduct(null);
     setLookupError('');
+    setScoreSaveError('');
 
     const trimmedData = data.trim();
     const barcode = /^\d{8,14}$/.test(trimmedData)
       ? trimmedData
       : trimmedData.match(/(?:^|\/)(\d{8,14})(?=\/|$|[?#])/)?.[1];
 
-    if (!barcode) return;
+    if (!barcode) {
+      setLookupError('This code does not contain a supported food barcode or Open Food Facts product link.');
+      return;
+    }
 
     setLookupLoading(true);
     try {
@@ -49,10 +58,36 @@ export default function QRScannerScreen() {
     setScannedData(null);
     setProduct(null);
     setLookupError('');
+    setScoreSaveError('');
   };
 
-  const formatNutrient = (value: number | null, unit: string) =>
-    value === null ? '—' : `${value} ${unit}`;
+  const acceptProduct = async () => {
+    if (!product || acceptLocked.current) return;
+    acceptLocked.current = true;
+    setSavingScore(true);
+
+    try {
+      const storedScore = await AsyncStorage.getItem(NUTRITION_SCORE_STORAGE_KEY);
+      const currentScore = storedScore === null ? 0 : Number(storedScore);
+      if (!Number.isSafeInteger(currentScore) || currentScore < 0) {
+        throw new Error('Saved score is invalid.');
+      }
+
+      const nextScore = currentScore + proteinStarRating(product.protein) * 3;
+      if (!Number.isSafeInteger(nextScore)) {
+        throw new Error('Updated score is outside the supported range.');
+      }
+      await AsyncStorage.setItem(NUTRITION_SCORE_STORAGE_KEY, String(nextScore));
+      goBack();
+    } catch (error) {
+      setScoreSaveError(
+        error instanceof Error ? `Could not save score: ${error.message}` : 'Could not save score.',
+      );
+      acceptLocked.current = false;
+    } finally {
+      setSavingScore(false);
+    }
+  };
 
   const goBack = () => {
     if (router.canGoBack()) {
@@ -124,19 +159,33 @@ export default function QRScannerScreen() {
             <>
               <Text style={styles.nutritionQrResultTitle}>{product.name || 'Food product'}</Text>
               <Text style={styles.nutritionQrResultData}>Serving: {product.serving}</Text>
-              <Text style={styles.nutritionQrNutritionTitle}>Nutrition per 100 g</Text>
-              <Text style={styles.nutritionQrResultData}>
-                Calories: {formatNutrient(product.per100g.calories, 'kcal')}
-              </Text>
-              <Text style={styles.nutritionQrResultData}>
-                Protein: {formatNutrient(product.per100g.protein, 'g')}
-              </Text>
-              <Text style={styles.nutritionQrResultData}>
-                Carbohydrates: {formatNutrient(product.per100g.carbs, 'g')}
-              </Text>
-              <Text style={styles.nutritionQrResultData}>
-                Fat: {formatNutrient(product.per100g.fat, 'g')}
-              </Text>
+              <View
+                accessible
+                accessibilityLabel={`${proteinStarRating(product.protein)} out of 5 stars`}
+                style={styles.nutritionRatingStars}
+              >
+                {[1, 2, 3, 4, 5].map(rating => (
+                  <Text key={rating} style={styles.nutritionStar}>
+                    {rating <= proteinStarRating(product.protein) ? '★' : '☆'}
+                  </Text>
+                ))}
+              </View>
+              {scoreSaveError ? (
+                <Text style={styles.nutritionErrorText}>{scoreSaveError}</Text>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                disabled={savingScore}
+                onPress={acceptProduct}
+                style={({ pressed }) => [
+                  styles.nutritionQrPrimaryButton,
+                  pressed && styles.nutritionPressed,
+                ]}
+              >
+                <Text style={styles.nutritionQrPrimaryButtonText}>
+                  {savingScore ? 'Saving…' : 'OK'}
+                </Text>
+              </Pressable>
             </>
           ) : (
             <>
@@ -147,13 +196,15 @@ export default function QRScannerScreen() {
               </Text>
             </>
           )}
-          <Pressable
-            accessibilityRole="button"
-            onPress={resetScan}
-            style={styles.nutritionQrPrimaryButton}
-          >
-            <Text style={styles.nutritionQrPrimaryButtonText}>Scan another</Text>
-          </Pressable>
+          {!product && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={resetScan}
+              style={styles.nutritionQrPrimaryButton}
+            >
+              <Text style={styles.nutritionQrPrimaryButtonText}>Scan another</Text>
+            </Pressable>
+          )}
         </View>
       ) : permission?.granted ? (
         <Text style={styles.nutritionQrHint}>The scanned content will appear here.</Text>
