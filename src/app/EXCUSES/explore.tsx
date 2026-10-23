@@ -53,9 +53,16 @@ export default function ExcusesScreen() {
           style={styles.excusesButton}
           onPress={getExcuse}
         >
-          <Text style={styles.excusesButtonText}>SPIN THE WHEEL 🎲</Text>
+          <Text style={styles.excusesButtonText}>ROLL THE DICE 🎲</Text>
         </TouchableOpacity>
       </View>
+
+      {excuse !== '' && (
+        <View style={styles.excusesReminder}>
+          <Text style={styles.excusesHeading}>Your Selected Excuse</Text>
+          <Text style={styles.excusesQuote}>{excuse}</Text>
+        </View>
+      )}
 
       <View style={styles.excusesReminder}>
         <Text style={styles.excusesHeading}>💗 Remember</Text>
