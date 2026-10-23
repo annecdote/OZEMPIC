@@ -5,9 +5,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F4EC',
   },
-  background: {
-    flex: 1,
-  },
   content: {
     flex: 1,
     alignItems: 'center',

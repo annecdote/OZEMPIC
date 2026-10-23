@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Spacing } from '../constants/theme';
+import { Spacing } from '../../constants/theme';
 import { AntiWorkoutCalendar } from './AntiWorkoutCalendar';
-import { CardioRestConverter } from './CardioRestConverter';
+import { CardioRestConverter } from '../CALENDAR/CardioRestConverter';
 
 export function AntiWorkoutHub() {
   const [activeTab, setActiveTab] = useState<'calendar' | 'converter'>('calendar');
