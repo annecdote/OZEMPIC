@@ -39,7 +39,7 @@ export default function FoxSprite({ size = 96 }: { size?: number }) {
       style={{ width: size, height: size, overflow: 'hidden' }}
     >
       <Image
-        source={require('../../assets/fox_sprite_sheet.png')}
+        source={require('../../assets/VISUAL/fox_sprite_sheet.png')}
         resizeMode="stretch"
         style={spriteStyle}
       />

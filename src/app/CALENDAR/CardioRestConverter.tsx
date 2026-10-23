@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { Spacing } from '../constants/theme';
+import { Spacing } from '../../constants/theme';
 export function CardioRestConverter() {
   const [minutes, setMinutes] = useState('');
   const [workoutType, setWorkoutType] = useState('running'); 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { Spacing } from '../constants/theme';
+import { Spacing } from '../../constants/theme';
 
 const MASTER_ANTI_WORKOUT_DB = [
     "Every muscle deserves a cheat day. Especially today.",
