@@ -176,20 +176,11 @@ export function CardioRestConverter() {
 }
 
 const styles = StyleSheet.create({
-  mainContainer: { 
-    alignSelf: 'stretch', 
-    marginTop: Spacing.three 
+  mainContainer: {
+    alignSelf: 'stretch',
   },
   box: { 
-    backgroundColor: '#ffffff',
-    borderColor: '#e2e8f0', 
-    borderRadius: Spacing.four, 
-    borderWidth: 1, 
-    padding: Spacing.four,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3
+    paddingVertical: Spacing.one,
   },
   header: { 
     color: '#2d4150', 

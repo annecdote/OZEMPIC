@@ -21,16 +21,23 @@ const MASTER_ANTI_WORKOUT_DB = [
     "Resting is an investment in your personal couch comfort."
 ];
 
+function getLocalDateString(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
 export function AntiWorkoutCalendar() {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString(new Date());
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [dailyMessage, setDailyMessage] = useState<string>('');
 
   useEffect(() => {
-    const parsedDate = new Date(selectedDate + 'T12:00:00');
-    
-    const totalDays = Math.floor(parsedDate.getTime() / (1000 * 60 * 60 * 24));
-    
+    const [year, month, day] = selectedDate.split('-').map(Number);
+    const totalDays = Date.UTC(year, month - 1, day) / (1000 * 60 * 60 * 24);
+
     const quoteIndex = Math.abs(totalDays) % MASTER_ANTI_WORKOUT_DB.length;
     setDailyMessage(MASTER_ANTI_WORKOUT_DB[quoteIndex]);
   }, [selectedDate]);

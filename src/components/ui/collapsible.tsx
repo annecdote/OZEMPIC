@@ -1,23 +1,25 @@
 import { SymbolView } from 'expo-symbols';
 import { PropsWithChildren, useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
-  const [isOpen, setIsOpen] = useState(false);
+export function Collapsible({
+  children,
+  title,
+  defaultOpen = false,
+}: PropsWithChildren & { title: string; defaultOpen?: boolean }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const theme = useTheme();
 
   return (
-    <ThemedView>
+    <View>
       <Pressable
         style={({ pressed }) => [styles.heading, pressed && styles.pressedHeading]}
         onPress={() => setIsOpen((value) => !value)}>
-        <ThemedView type="backgroundElement" style={styles.button}>
+        <View style={[styles.button, { backgroundColor: theme.backgroundElement }]}>
           <SymbolView
             name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }}
             size={14}
@@ -25,18 +27,18 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
             tintColor={theme.text}
             style={{ transform: [{ rotate: isOpen ? '-90deg' : '90deg' }] }}
           />
-        </ThemedView>
+        </View>
 
-        <ThemedText type="small">{title}</ThemedText>
+        <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
       </Pressable>
       {isOpen && (
         <Animated.View entering={FadeIn.duration(200)}>
-          <ThemedView type="backgroundElement" style={styles.content}>
+          <View style={[styles.content, { backgroundColor: theme.backgroundElement }]}>
             {children}
-          </ThemedView>
+          </View>
         </Animated.View>
       )}
-    </ThemedView>
+    </View>
   );
 }
 
@@ -45,6 +47,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
+  },
+  title: {
+    fontSize: 14,
   },
   pressedHeading: {
     opacity: 0.7,
@@ -59,7 +64,6 @@ const styles = StyleSheet.create({
   content: {
     marginTop: Spacing.three,
     borderRadius: Spacing.three,
-    marginLeft: Spacing.four,
     padding: Spacing.four,
   },
 });

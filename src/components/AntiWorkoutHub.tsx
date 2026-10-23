@@ -15,7 +15,10 @@ export function AntiWorkoutHub() {
           style={[styles.tabButton, activeTab === 'calendar' && styles.activeTabButton]}
           onPress={() => setActiveTab('calendar')}
         >
-          <Text style={[styles.tabButtonText, activeTab === 'calendar' && styles.activeTabText]}>
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            style={[styles.tabButtonText, activeTab === 'calendar' && styles.activeTabText]}>
             Daily Message
           </Text>
         </TouchableOpacity>
@@ -24,8 +27,11 @@ export function AntiWorkoutHub() {
           style={[styles.tabButton, activeTab === 'converter' && styles.activeTabButton]}
           onPress={() => setActiveTab('converter')}
         >
-          <Text style={[styles.tabButtonText, activeTab === 'converter' && styles.activeTabText]}>
-             Cardio Rest Converter
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            style={[styles.tabButtonText, activeTab === 'converter' && styles.activeTabText]}>
+            Cardio Rest Converter
           </Text>
         </TouchableOpacity>
       </View>
@@ -55,7 +61,9 @@ const styles = StyleSheet.create({
   },
   tabButton: {
     flex: 1,
+    minWidth: 0,
     paddingVertical: 10,
+    paddingHorizontal: Spacing.one,
     alignItems: 'center',
     borderRadius: Spacing.two,
   },
@@ -68,19 +76,16 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
   },
   tabButtonText: {
-    fontSize: 14,
+    flexShrink: 1,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#64748b',
+    textAlign: 'center',
   },
   activeTabText: {
     color: '#ff4757', 
   },
   contentView: {
     alignSelf: 'stretch',
-    backgroundColor: '#ffffff',
-    borderRadius: Spacing.four,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    padding: Spacing.three,
   },
 });
