@@ -38,7 +38,7 @@ type UsdaFood = {
 };
 
 export async function searchFoods(searchTerm: string): Promise<FoodSearchResult[]> {
-  const apiKey = process.env.EXPO_PUBLIC_FDC_API_KEY ?? 'RdRpKbzp9RJNdNFTGT8NwzLzFTmwnmbhCBNBb9Nj';
+  const apiKey = process.env.EXPO_PUBLIC_FDC_API_KEY ?? 'DEMO_KEY';
   const params = new URLSearchParams({
     query: searchTerm.trim(),
     dataType: 'Foundation,SR Legacy',
