@@ -18,12 +18,7 @@ export function proteinStarRating(protein: number | null): number {
 export type BarcodeFoodResult = {
   name: string;
   serving: string;
-  per100g: {
-    calories: number | null;
-    protein: number | null;
-    carbs: number | null;
-    fat: number | null;
-  };
+  protein: number | null;
 };
 
 type UsdaFood = {
@@ -43,7 +38,7 @@ type UsdaFood = {
 };
 
 export async function searchFoods(searchTerm: string): Promise<FoodSearchResult[]> {
-  const apiKey = process.env.EXPO_PUBLIC_FDC_API_KEY ?? 'DEMO_KEY';
+  const apiKey = process.env.EXPO_PUBLIC_FDC_API_KEY ?? 'RdRpKbzp9RJNdNFTGT8NwzLzFTmwnmbhCBNBb9Nj';
   const params = new URLSearchParams({
     query: searchTerm.trim(),
     dataType: 'Foundation,SR Legacy',
@@ -94,32 +89,27 @@ export async function lookupBarcode(barcode: string): Promise<BarcodeFoodResult 
   if (!response.ok) throw new Error('Could not look up this food');
 
   const result: {
-    status: number;
+    status?: number | string;
     product?: {
       product_name?: string;
       brands?: string;
       serving_size?: string;
       nutriments?: {
-        'energy-kcal_100g'?: number;
         proteins_100g?: number;
-        carbohydrates_100g?: number;
-        fat_100g?: number;
       };
     };
   } = await response.json();
-  if (result.status !== 1 || !result.product) return null;
+  const productFound =
+    result.status === 1 ||
+    result.status === 'success' ||
+    result.status === 'success_with_warnings';
+  if (!productFound || !result.product) return null;
 
   const product = result.product;
-  const nutrients = product.nutriments ?? {};
 
   return {
     name: [product.product_name, product.brands].filter(Boolean).join(' — '),
     serving: product.serving_size ?? '100 g',
-    per100g: {
-      calories: nutrients['energy-kcal_100g'] ?? null,
-      protein: nutrients.proteins_100g ?? null,
-      carbs: nutrients.carbohydrates_100g ?? null,
-      fat: nutrients.fat_100g ?? null,
-    },
+    protein: product.nutriments?.proteins_100g ?? null,
   };
 }

@@ -527,6 +527,9 @@ export const styles = StyleSheet.create({
     bottom: 40,
     alignItems: 'center',
   },
+  nutritionFox: {
+    transform: [{ translateY: 12 }],
+  },
   nutritionCarrot: {
     position: 'absolute',
     top: 0,
