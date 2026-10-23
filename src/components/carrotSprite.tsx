@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Image, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAudioPlayer } from 'expo-audio';
+import { SOUND_MUTED_STORAGE_KEY } from '../lib/storageKeys';
 import { carrotSpriteImageStyle, styles } from '../styles';
 
 const FRAME_COUNT = 17.8;
@@ -35,9 +37,15 @@ export default function CarrotSprite({
       if (nextFrame >= FRAME_COUNT) {
         clearInterval(timer);
         setVisible(false);
-        void eatSound.seekTo(0).then(() => eatSound.play()).catch(error => {
-          console.error('Could not play the carrot eating sound.', error);
-        });
+        void AsyncStorage.getItem(SOUND_MUTED_STORAGE_KEY)
+          .then(async isMuted => {
+            if (isMuted === 'true') return;
+            await eatSound.seekTo(0);
+            eatSound.play();
+          })
+          .catch(error => {
+            console.error('Could not play the carrot eating sound.', error);
+          });
         onEaten();
         return;
       }

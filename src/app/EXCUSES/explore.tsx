@@ -53,7 +53,7 @@ export default function ExcusesScreen() {
           style={styles.excusesButton}
           onPress={getExcuse}
         >
-          <Text style={styles.excusesButtonText}>ROLL THE DICE 🎲</Text>
+          <Text style={styles.excusesButtonText}>SPIN THE WHEEL 🎲</Text>
         </TouchableOpacity>
       </View>
 
