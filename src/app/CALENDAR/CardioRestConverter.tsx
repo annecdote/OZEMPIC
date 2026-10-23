@@ -1,85 +1,246 @@
-import { useState } from 'react';
-import { Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { Spacing } from '../../constants/theme';
+import { useEffect, useState } from 'react';
+import { Keyboard, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { colors, styles } from '../../styles';
+
+type WorkoutType = 'running' | 'lifting' | 'cycling';
+const workoutTypes: WorkoutType[] = ['running', 'lifting', 'cycling'];
+
+type WorkoutLog = {
+  id: string;
+  date: string;
+  workout: WorkoutType;
+  minutes: number;
+  restHours: number;
+};
+
+const WORKOUT_LOGS_KEY = 'workout_logs';
+const MAX_WORKOUT_LOGS = 4;
+
+function normalizeWorkoutLog(value: unknown): WorkoutLog | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+
+  const log = value as Record<string, unknown>;
+  const minutes =
+    typeof log.minutes === 'number'
+      ? log.minutes
+      : typeof log.mins === 'string'
+        ? Number(log.mins)
+        : NaN;
+
+  if (
+    typeof log.id !== 'string' ||
+    typeof log.date !== 'string' ||
+    (log.workout !== 'running' && log.workout !== 'lifting' && log.workout !== 'cycling') ||
+    !Number.isFinite(minutes) ||
+    minutes <= 0 ||
+    typeof log.restHours !== 'number' ||
+    !Number.isFinite(log.restHours)
+  ) {
+    return null;
+  }
+
+  return {
+    id: log.id,
+    date: log.date,
+    workout: log.workout,
+    minutes,
+    restHours: log.restHours,
+  };
+}
+
 export function CardioRestConverter() {
   const [minutes, setMinutes] = useState('');
-  const [workoutType, setWorkoutType] = useState('running'); 
+  const [workoutType, setWorkoutType] = useState<WorkoutType>('running');
   const [result, setResult] = useState<{ couchHours: number; reward: string } | null>(null);
+  const [logs, setLogs] = useState<WorkoutLog[]>([]);
+  const [storageReady, setStorageReady] = useState(false);
+  const [storageError, setStorageError] = useState('');
+  const [formError, setFormError] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const handleCalculate = () => {
+  useEffect(() => {
+    let isMounted = true;
+
+    AsyncStorage.getItem(WORKOUT_LOGS_KEY)
+      .then(async (storedLogs) => {
+        if (!storedLogs) return;
+
+        const parsedLogs: unknown = JSON.parse(storedLogs);
+        if (!Array.isArray(parsedLogs)) {
+          throw new Error('Saved workout history has an invalid format.');
+        }
+
+        const normalizedLogs = parsedLogs.map(normalizeWorkoutLog);
+        if (!normalizedLogs.every((log): log is WorkoutLog => log !== null)) {
+          throw new Error('Saved workout history has an invalid format.');
+        }
+
+        const recentLogs = normalizedLogs.slice(0, MAX_WORKOUT_LOGS);
+        if (isMounted) {
+          setLogs(recentLogs);
+          await AsyncStorage.setItem(WORKOUT_LOGS_KEY, JSON.stringify(recentLogs));
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setStorageError('Could not load saved workout history.');
+        }
+      })
+      .finally(() => {
+        if (isMounted) setStorageReady(true);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleCalculate = async () => {
     const minNum = parseFloat(minutes);
-    if (isNaN(minNum) || minNum <= 0) return;
-
-    let multiplier = 1;
-    let customReward = '';
-
-    if (workoutType === 'running') {
-      multiplier = 6; 
-      customReward = 'Guilt-Free Reality TV Binging and an extra slice of pizza.';
-    } else if (workoutType === 'lifting') {
-      multiplier = 4; 
-      customReward = 'Uninterrupted couch nap time and complete authority over the TV remote.';
-    } else {
-      multiplier = 3; 
-      customReward = 'Snoozing your morning alarm up to 3 times tomorrow without remorse.';
+    if (!Number.isFinite(minNum) || minNum <= 0) {
+      setFormError('Enter a workout duration greater than zero.');
+      return;
     }
+
+    const rewards: Record<WorkoutType, { multiplier: number; reward: string }> = {
+      running: {
+        multiplier: 6,
+        reward: 'Guilt-Free Reality TV Binging and an extra slice of pizza.',
+      },
+      lifting: {
+        multiplier: 4,
+        reward: 'Uninterrupted couch nap time and complete authority over the TV remote.',
+      },
+      cycling: {
+        multiplier: 3,
+        reward: 'Snoozing your morning alarm up to 3 times tomorrow without remorse.',
+      },
+    };
+    const { multiplier, reward: customReward } = rewards[workoutType];
 
     const totalMinutesEarned = minNum * multiplier;
     const hours = parseFloat((totalMinutesEarned / 60).toFixed(1));
 
-    setResult({
-      couchHours: hours,
-      reward: customReward
-    });
-    
+    setResult({ couchHours: hours, reward: customReward });
+    setFormError('');
     setMinutes('');
     Keyboard.dismiss();
+
+    const newLog: WorkoutLog = {
+      id: `${Date.now()}`,
+      date: new Date().toISOString(),
+      workout: workoutType,
+      minutes: minNum,
+      restHours: hours,
+    };
+    const nextLogs = [newLog, ...logs].slice(0, MAX_WORKOUT_LOGS);
+
+    setSaving(true);
+    try {
+      await AsyncStorage.setItem(WORKOUT_LOGS_KEY, JSON.stringify(nextLogs));
+      setLogs(nextLogs);
+      setStorageError('');
+    } catch {
+      setStorageError('Could not save this workout to history.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const clearLogs = async () => {
+    setSaving(true);
+    try {
+      await AsyncStorage.removeItem(WORKOUT_LOGS_KEY);
+      setLogs([]);
+      setResult(null);
+      setStorageError('');
+    } catch {
+      setStorageError('Could not clear saved workout history.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <View style={styles.wrapper}>
-       <View style={styles.card}> 
-        <Text style={styles.cardTitle}> Cardio-to-Rest Converter</Text>
-        <Text style={styles.subtitle}>Accidentally exercised? Input your metrics below to claim your laziness tokens.</Text>
+    <View style={styles.converterWrapper}>
+       <View style={styles.converterCard}>
+        <Text style={styles.converterTitle}> Cardio-to-Rest Converter</Text>
+        <Text style={styles.converterSubtitle}>Accidentally exercised? Input your metrics below to claim your laziness tokens.</Text>
 
-        <View style={styles.selectorRow}>
-          {['running', 'lifting', 'cycling'].map((type) => (
+        <View style={styles.converterSelectorRow}>
+          {workoutTypes.map((type) => (
             <TouchableOpacity
               key={type}
-              style={[styles.selectorButton, workoutType === type && styles.activeSelector]}
+              style={[styles.converterSelectorButton, workoutType === type && styles.converterActiveSelector]}
               onPress={() => {
                 setWorkoutType(type);
                 setResult(null);
               }}
             >
-              <Text style={[styles.selectorText, workoutType === type && styles.activeSelectorText]}>
+              <Text style={[styles.converterSelectorText, workoutType === type && styles.converterActiveSelectorText]}>
                 {type.toUpperCase()}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Duration of Mistake (Minutes):</Text>
+        <View style={styles.converterInputGroup}>
+          <Text style={styles.converterLabel}>Duration of Mistake (Minutes):</Text>
           <TextInput
-            style={styles.textInput}
+            style={styles.converterInput}
             placeholder="e.g., 30"
-            placeholderTextColor="#888"
+            placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
             value={minutes}
-            onChangeText={setMinutes}
+            onChangeText={(value) => {
+              setMinutes(value);
+              setFormError('');
+            }}
           />
         </View>
 
-        <TouchableOpacity style={styles.calcButton} onPress={handleCalculate}>
-          <Text style={styles.buttonText}> Cash Out Effort Tokens</Text>
+        {formError ? <Text style={styles.converterError}>{formError}</Text> : null}
+        <TouchableOpacity
+          accessibilityRole="button"
+          disabled={!storageReady || saving}
+          style={[styles.converterButton, (!storageReady || saving) && styles.converterDisabled]}
+          onPress={handleCalculate}
+        >
+          <Text style={styles.converterButtonText}>
+            {!storageReady ? 'Loading history…' : 'Cash Out Effort Tokens'}
+          </Text>
         </TouchableOpacity>
         {result && (
-          <View style={styles.resultCard}>
-            <Text style={styles.resultHeader}> Couch Tokens Cleared!</Text>
-            <Text style={styles.resultBody}>
-              Your effort has successfully unlocked <Text style={styles.boldText}>{result.couchHours} hours</Text> of authorized, mandatory lounging.
+          <View style={styles.converterResult}>
+            <Text style={styles.converterResultTitle}> Couch Tokens Cleared!</Text>
+            <Text style={styles.converterResultBody}>
+              Your effort has successfully unlocked <Text style={styles.converterBoldText}>{result.couchHours} hours</Text> of authorized, mandatory lounging.
             </Text>
-            <Text style={styles.rewardText}> Unlocked Perk: {result.reward}</Text>
+            <Text style={styles.converterReward}> Unlocked Perk: {result.reward}</Text>
+          </View>
+        )}
+
+        {storageError ? <Text style={styles.converterError}>{storageError}</Text> : null}
+
+        {logs.length > 0 && (
+          <View style={styles.converterHistory}>
+            <View style={styles.converterHistoryHeader}>
+              <Text style={styles.converterHistoryTitle}>Saved Workouts</Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                disabled={saving}
+                onPress={clearLogs}
+              >
+                <Text style={styles.converterDeleteText}>Clear history</Text>
+              </TouchableOpacity>
+            </View>
+            {logs.map((log) => (
+              <View key={log.id} style={styles.converterHistoryRow}>
+                <Text style={styles.converterHistoryText}>
+                  {formatLogDate(log.date)}: {log.minutes} min {log.workout} = {log.restHours} hr rest
+                </Text>
+              </View>
+            ))}
           </View>
         )}
       </View>
@@ -87,120 +248,7 @@ export function CardioRestConverter() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    alignSelf: 'stretch',
-    marginTop: Spacing.three,
-  },
-  card: {
-    padding: Spacing.four,
-    borderRadius: Spacing.four,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#ffffff',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2d4150',
-    marginBottom: Spacing.one,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: '#718096',
-    marginBottom: Spacing.four,
-    lineHeight: 18,
-  },
-  selectorRow: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-    marginBottom: Spacing.four,
-  },
-  selectorButton: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: Spacing.two,
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    alignItems: 'center',
-    backgroundColor: '#f8fafc',
-  },
-  activeSelector: {
-    backgroundColor: '#ff4757',
-    borderColor: '#ff4757',
-  },
-  selectorText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#64748b',
-  },
-  activeSelectorText: {
-    color: '#ffffff',
-  },
-  inputGroup: {
-    marginBottom: Spacing.three,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4a5568',
-    marginBottom: Spacing.one,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: Spacing.two,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    fontSize: 15,
-    color: '#334155',
-    backgroundColor: '#f8fafc',
-  },
-  calcButton: {
-    backgroundColor: '#2d4150',
-    paddingVertical: 12,
-    borderRadius: Spacing.two,
-    alignItems: 'center',
-    marginTop: Spacing.two,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  resultCard: {
-    marginTop: Spacing.four,
-    padding: Spacing.four,
-    backgroundColor: '#eff6ff',
-    borderRadius: Spacing.three,
-    borderLeftWidth: 5,
-    borderLeftColor: '#3b82f6',
-  },
-  resultHeader: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#1e40af',
-    marginBottom: Spacing.one,
-  },
-  resultBody: {
-    fontSize: 14,
-    color: '#1e3a8a',
-    lineHeight: 20,
-    marginBottom: Spacing.two,
-  },
-  boldText: {
-    fontWeight: 'bold',
-    color: '#ff4757',
-  },
-  rewardText: {
-    fontSize: 13,
-    color: '#1e3a8a',
-    fontStyle: 'italic',
-    fontWeight: '500',
-  },
-});
+function formatLogDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
+}

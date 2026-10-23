@@ -4,7 +4,16 @@ export type FoodSearchResult = {
   id: string;
   name: string;
   serving: string;
+  protein: number | null;
 };
+
+export function proteinStarRating(protein: number | null): number {
+  if (protein === null) return 0;
+  if (protein < 5) return 1;
+  if (protein <= 10) return 3;
+  if (protein <= 20) return 4;
+  return 5;
+}
 
 export type BarcodeFoodResult = {
   name: string;
@@ -23,6 +32,14 @@ type UsdaFood = {
   brandOwner?: string;
   servingSize?: number;
   servingSizeUnit?: string;
+  foodNutrients?: {
+    number?: string;
+    name?: string;
+    amount?: number;
+    nutrientNumber?: string;
+    nutrientName?: string;
+    value?: number;
+  }[];
 };
 
 export async function searchFoods(searchTerm: string): Promise<FoodSearchResult[]> {
@@ -44,13 +61,23 @@ export async function searchFoods(searchTerm: string): Promise<FoodSearchResult[
   }
 
   const result: { foods?: UsdaFood[] } = await response.json();
-  return (result.foods ?? []).map(food => ({
+  return (result.foods ?? []).map(food => {
+    const proteinNutrient = food.foodNutrients?.find(nutrient =>
+      nutrient.nutrientNumber === '203' ||
+      nutrient.number === '203' ||
+      nutrient.nutrientName?.toLowerCase() === 'protein' ||
+      nutrient.name?.toLowerCase() === 'protein'
+    );
+
+    return {
       id: String(food.fdcId),
       name: food.brandOwner ? `${food.description} — ${food.brandOwner}` : food.description,
       serving: food.servingSize && food.servingSizeUnit
         ? `${food.servingSize} ${food.servingSizeUnit}`
         : '100 g',
-    }));
+      protein: proteinNutrient?.value ?? proteinNutrient?.amount ?? null,
+    };
+  });
 }
 
 export async function lookupBarcode(barcode: string): Promise<BarcodeFoodResult | null> {
