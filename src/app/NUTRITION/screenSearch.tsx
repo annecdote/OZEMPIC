@@ -10,19 +10,23 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { FoodSearchResult, searchFoods } from '../../lib/nutritionAPI';
-import styles from '../../constants/nutritionStyling';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { proteinStarRating, searchFoods, type FoodSearchResult } from '../../lib/nutritionAPI';
+import { colors, styles } from '../../styles';
 
 type FoodSearchModalProps = {
   visible: boolean;
   onClose: () => void;
+  onSelectFood: (points: number) => void;
 };
 
-export default function FoodSearchModal({ visible, onClose }: FoodSearchModalProps) {
+export default function FoodSearchModal({
+  visible,
+  onClose,
+  onSelectFood,
+}: FoodSearchModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<FoodSearchResult[]>([]);
-  const [foodRatings, setFoodRatings] = useState<Record<string, number>>({});
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
 
@@ -59,92 +63,106 @@ export default function FoodSearchModal({ visible, onClose }: FoodSearchModalPro
       presentationStyle="fullScreen"
       onRequestClose={closeSearch}
     >
-      <SafeAreaView edges={['top', 'right', 'bottom', 'left']} style={styles.searchScreen}>
+      <SafeAreaProvider>
+        <SafeAreaView edges={['top', 'right', 'bottom', 'left']} style={styles.nutritionSearchScreen}>
           <KeyboardAvoidingView
-            style={styles.searchScreen}
+            style={styles.nutritionSearchScreen}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <View style={styles.searchHeader}>
+            <View style={styles.nutritionSearchHeader}>
               <View>
-                <Text style={styles.searchTitle}>Find a food</Text>
-                <Text style={styles.searchSubtitle}>Look up calories and nutrition</Text>
+                <Text style={styles.nutritionSearchTitle}>Find a food</Text>
+                <Text style={styles.nutritionSearchSubtitle}>Look up calories and nutrition</Text>
               </View>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Close food search"
                 onPress={closeSearch}
-                style={styles.closeButton}
+                style={styles.nutritionCloseButton}
               >
-                <Text style={styles.closeButtonText}>×</Text>
+                <Text style={styles.nutritionCloseButtonText}>×</Text>
               </Pressable>
             </View>
 
-            <View style={styles.searchForm}>
+            <View style={styles.nutritionSearchForm}>
               <TextInput
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 onSubmitEditing={runFoodSearch}
                 placeholder="e.g. banana, oatmeal"
-                placeholderTextColor="#91897D"
+                placeholderTextColor={colors.textSecondary}
                 returnKeyType="search"
-                style={styles.searchInput}
+                style={styles.nutritionSearchInput}
                 accessibilityLabel="Search foods"
               />
               <Pressable
                 accessibilityRole="button"
                 onPress={runFoodSearch}
                 disabled={searchLoading}
-                style={({ pressed }) => [styles.submitSearchButton, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.nutritionSubmitSearchButton, pressed && styles.nutritionPressed]}
               >
-                <Text style={styles.submitSearchText}>Search</Text>
+                <Text style={styles.nutritionSubmitSearchText}>Search</Text>
               </Pressable>
             </View>
 
-            <Text style={styles.resultsCaption}>Nutrition values are per 100 g.</Text>
+            <Text style={styles.nutritionResultsCaption}>Nutrition values are per 100 g.</Text>
 
             {searchLoading ? (
-              <View style={styles.searchMessage}>
-                <ActivityIndicator color="#9C5140" />
-                <Text style={styles.messageText}>Searching foods…</Text>
+              <View style={styles.nutritionSearchMessage}>
+                <ActivityIndicator color={colors.accent} />
+                <Text style={styles.nutritionMessageText}>Searching foods…</Text>
               </View>
             ) : searchError ? (
-              <Text style={styles.errorText}>{searchError}</Text>
+              <Text style={styles.nutritionErrorText}>{searchError}</Text>
             ) : searchResults.length === 0 ? (
-              <Text style={styles.emptyText}>Search for a food to see matching products.</Text>
+              <Text style={styles.nutritionEmptyText}>Search for a food to see matching products.</Text>
             ) : (
-              <ScrollView contentContainerStyle={styles.resultsList}>
-                {searchResults.map(result => (
-                  <View key={result.id} style={styles.resultCard}>
-                    <View style={styles.resultHeading}>
-                      <View style={styles.resultNameContainer}>
-                        <Text style={styles.resultName}>{result.name}</Text>
-                        <Text style={styles.resultServing}>Serving: {result.serving}</Text>
-                      </View>
-                      <View style={styles.ratingStars} accessibilityLabel="Rate this food from one to five stars">
-                        {[1, 2, 3, 4, 5].map(rating => (
-                          <Pressable
-                            key={rating}
-                            accessibilityRole="button"
-                            accessibilityLabel={`${rating} star${rating === 1 ? '' : 's'}`}
-                            onPress={() => setFoodRatings(current => ({ ...current, [result.id]: rating }))}
-                            hitSlop={4}
-                          >
-                            <Text style={[
-                              styles.star,
-                              rating <= (foodRatings[result.id] ?? 0) && styles.selectedStar,
-                            ]}>
-                              {rating <= (foodRatings[result.id] ?? 0) ? '★' : '☆'}
+              <ScrollView contentContainerStyle={styles.nutritionResultsList}>
+                {searchResults.map(result => {
+                  const stars = proteinStarRating(result.protein);
+                  return (
+                    <Pressable
+                      key={result.id}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Select ${result.name}`}
+                      onPress={() => {
+                        onSelectFood(stars * 3);
+                        closeSearch();
+                      }}
+                      style={({ pressed }) => [
+                        styles.nutritionResultCard,
+                        pressed && styles.nutritionPressed,
+                      ]}
+                    >
+                      <View style={styles.nutritionResultHeading}>
+                        <View style={styles.nutritionResultNameContainer}>
+                          <Text style={styles.nutritionResultName}>{result.name}</Text>
+                          <Text style={styles.nutritionResultServing}>Serving: {result.serving}</Text>
+                        </View>
+                        <View
+                          accessible
+                          accessibilityLabel={
+                            result.protein === null
+                              ? 'Protein information unavailable'
+                              : `${result.protein} grams of protein, ${stars} out of 5 stars`
+                          }
+                          style={styles.nutritionRatingStars}
+                        >
+                          {[1, 2, 3, 4, 5].map(rating => (
+                            <Text key={rating} style={styles.nutritionStar}>
+                              {rating <= stars ? '★' : '☆'}
                             </Text>
-                          </Pressable>
-                        ))}
+                          ))}
+                        </View>
                       </View>
-                    </View>
-                  </View>
-                ))}
+                    </Pressable>
+                  );
+                })}
               </ScrollView>
             )}
           </KeyboardAvoidingView>
-      </SafeAreaView>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }

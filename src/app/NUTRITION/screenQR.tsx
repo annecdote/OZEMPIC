@@ -4,7 +4,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BarcodeFoodResult, lookupBarcode } from '../../lib/nutritionAPI';
-import styles from '../../constants/nutritionStyling';
+import { colors, styles } from '../../styles';
 
 export default function QRScannerScreen() {
   const router = useRouter();
@@ -63,28 +63,28 @@ export default function QRScannerScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.qrScreen} edges={['top', 'right', 'bottom', 'left']}>
-      <View style={styles.qrHeader}>
+    <SafeAreaView style={styles.nutritionQrScreen} edges={['top', 'right', 'bottom', 'left']}>
+      <View style={styles.nutritionQrHeader}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Go back"
           onPress={goBack}
-          style={styles.qrBackButton}
+          style={styles.nutritionQrBackButton}
         >
-          <Text style={styles.qrBackButtonText}>‹</Text>
+          <Text style={styles.nutritionQrBackButtonText}>‹</Text>
         </Pressable>
-        <Text style={styles.qrTitle}>Scan a QR code</Text>
+        <Text style={styles.nutritionQrTitle}>Scan a QR code</Text>
       </View>
 
-      <Text style={styles.qrSubtitle}>
+      <Text style={styles.nutritionQrSubtitle}>
         Scan a product barcode or a QR code containing an Open Food Facts product link.
       </Text>
 
       {!permission ? (
-        <Text style={styles.qrPermissionMessage}>Checking camera permission…</Text>
+        <Text style={styles.nutritionQrPermissionMessage}>Checking camera permission…</Text>
       ) : !permission.granted ? (
-        <View style={styles.qrPermissionPanel}>
-          <Text style={styles.qrPermissionMessage}>
+        <View style={styles.nutritionQrPermissionPanel}>
+          <Text style={styles.nutritionQrPermissionMessage}>
             {permission.canAskAgain
               ? 'Camera access is needed to scan a QR code.'
               : 'Enable camera access in your device settings to scan QR codes.'}
@@ -93,56 +93,56 @@ export default function QRScannerScreen() {
             <Pressable
               accessibilityRole="button"
               onPress={requestPermission}
-              style={styles.qrPrimaryButton}
+              style={styles.nutritionQrPrimaryButton}
             >
-              <Text style={styles.qrPrimaryButtonText}>Allow camera access</Text>
+              <Text style={styles.nutritionQrPrimaryButtonText}>Allow camera access</Text>
             </Pressable>
           )}
         </View>
       ) : (
-        <View style={styles.qrCameraFrame}>
+        <View style={styles.nutritionQrCameraFrame}>
           <CameraView
-            style={styles.qrCamera}
+            style={styles.nutritionQrCamera}
             facing="back"
             barcodeScannerSettings={{
               barcodeTypes: ['qr', 'ean13', 'ean8', 'upc_a', 'upc_e'],
             }}
             onBarcodeScanned={scannedData ? undefined : result => handleScan(result.data)}
           />
-          {!scannedData && <View pointerEvents="none" style={styles.qrScanReticle} />}
+          {!scannedData && <View pointerEvents="none" style={styles.nutritionQrScanReticle} />}
         </View>
       )}
 
       {scannedData ? (
-        <View style={styles.qrResultPanel}>
+        <View style={styles.nutritionQrResultPanel}>
           {lookupLoading ? (
-            <View style={styles.qrLoadingRow}>
-              <ActivityIndicator color="#9C5140" />
-              <Text style={styles.qrResultTitle}>Looking up product…</Text>
+            <View style={styles.nutritionQrLoadingRow}>
+              <ActivityIndicator color={colors.accent} />
+              <Text style={styles.nutritionQrResultTitle}>Looking up product…</Text>
             </View>
           ) : product ? (
             <>
-              <Text style={styles.qrResultTitle}>{product.name || 'Food product'}</Text>
-              <Text style={styles.qrResultData}>Serving: {product.serving}</Text>
-              <Text style={styles.qrNutritionTitle}>Nutrition per 100 g</Text>
-              <Text style={styles.qrResultData}>
+              <Text style={styles.nutritionQrResultTitle}>{product.name || 'Food product'}</Text>
+              <Text style={styles.nutritionQrResultData}>Serving: {product.serving}</Text>
+              <Text style={styles.nutritionQrNutritionTitle}>Nutrition per 100 g</Text>
+              <Text style={styles.nutritionQrResultData}>
                 Calories: {formatNutrient(product.per100g.calories, 'kcal')}
               </Text>
-              <Text style={styles.qrResultData}>
+              <Text style={styles.nutritionQrResultData}>
                 Protein: {formatNutrient(product.per100g.protein, 'g')}
               </Text>
-              <Text style={styles.qrResultData}>
+              <Text style={styles.nutritionQrResultData}>
                 Carbohydrates: {formatNutrient(product.per100g.carbs, 'g')}
               </Text>
-              <Text style={styles.qrResultData}>
+              <Text style={styles.nutritionQrResultData}>
                 Fat: {formatNutrient(product.per100g.fat, 'g')}
               </Text>
             </>
           ) : (
             <>
-              <Text style={styles.qrResultTitle}>Scanned code</Text>
-              <Text selectable style={styles.qrResultData}>{scannedData}</Text>
-              <Text style={styles.qrResultData}>
+              <Text style={styles.nutritionQrResultTitle}>Scanned code</Text>
+              <Text selectable style={styles.nutritionQrResultData}>{scannedData}</Text>
+              <Text style={styles.nutritionQrResultData}>
                 {lookupError || 'This code is not a supported product barcode or product link.'}
               </Text>
             </>
@@ -150,13 +150,13 @@ export default function QRScannerScreen() {
           <Pressable
             accessibilityRole="button"
             onPress={resetScan}
-            style={styles.qrPrimaryButton}
+            style={styles.nutritionQrPrimaryButton}
           >
-            <Text style={styles.qrPrimaryButtonText}>Scan another</Text>
+            <Text style={styles.nutritionQrPrimaryButtonText}>Scan another</Text>
           </Pressable>
         </View>
       ) : permission?.granted ? (
-        <Text style={styles.qrHint}>The scanned content will appear here.</Text>
+        <Text style={styles.nutritionQrHint}>The scanned content will appear here.</Text>
       ) : null}
     </SafeAreaView>
   );
