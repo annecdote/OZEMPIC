@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import {
   Modal,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../../theme';
+import { styles } from '../../styles';
 
 const excuses = [
   'My bed needs me.',
@@ -33,34 +32,34 @@ export default function ExcusesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.excusesContainer}>
       <TouchableOpacity
         accessibilityRole="button"
         onPress={() => router.navigate('/')}
       >
-        <Text style={styles.back}>← Back to Home</Text>
+        <Text style={styles.excusesBack}>← Back to Home</Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>The Excuse Room</Text>
-      <Text style={styles.text}>Can&apos;t work out today? We&apos;ve got you.</Text>
+      <Text style={styles.excusesTitle}>The Excuse Room</Text>
+      <Text style={styles.excusesText}>Can&apos;t work out today? We&apos;ve got you.</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.emoji}>😴</Text>
-        <Text style={styles.heading}>Need a good excuse?</Text>
-        <Text style={styles.text}>Let us help you relax.</Text>
+      <View style={styles.excusesCard}>
+        <Text style={styles.excusesEmoji}>😴</Text>
+        <Text style={styles.excusesHeading}>Need a good excuse?</Text>
+        <Text style={styles.excusesText}>Let us help you relax.</Text>
 
         <TouchableOpacity
           accessibilityRole="button"
-          style={styles.button}
+          style={styles.excusesButton}
           onPress={getExcuse}
         >
-          <Text style={styles.buttonText}>SPIN THE WHEEL 🎲</Text>
+          <Text style={styles.excusesButtonText}>SPIN THE WHEEL 🎲</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.reminder}>
-        <Text style={styles.heading}>💗 Remember</Text>
-        <Text style={styles.text}>Taking a break is okay.</Text>
+      <View style={styles.excusesReminder}>
+        <Text style={styles.excusesHeading}>💗 Remember</Text>
+        <Text style={styles.excusesText}>Taking a break is okay.</Text>
       </View>
 
       <Modal
@@ -69,33 +68,33 @@ export default function ExcusesScreen() {
         animationType="fade"
         onRequestClose={() => setShow(false)}
       >
-        <View style={styles.overlay}>
-          <View style={styles.popup}>
+        <View style={styles.excusesOverlay}>
+          <View style={styles.excusesPopup}>
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel="Close excuse"
               onPress={() => setShow(false)}
             >
-              <Text style={styles.close}>✕</Text>
+              <Text style={styles.excusesClose}>✕</Text>
             </TouchableOpacity>
 
-            <Text style={styles.emoji}>🛋️</Text>
-            <Text style={styles.heading}>YOUR EXCUSE</Text>
-            <Text style={styles.excuse}>{excuse}</Text>
+            <Text style={styles.excusesEmoji}>🛋️</Text>
+            <Text style={styles.excusesHeading}>YOUR EXCUSE</Text>
+            <Text style={styles.excusesQuote}>{excuse}</Text>
 
             <TouchableOpacity
               accessibilityRole="button"
-              style={styles.button}
+              style={styles.excusesButton}
               onPress={getExcuse}
             >
-              <Text style={styles.buttonText}>Give Me Another 🎲</Text>
+              <Text style={styles.excusesButtonText}>Give Me Another 🎲</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               accessibilityRole="button"
               onPress={() => setShow(false)}
             >
-              <Text style={styles.done}>I&apos;m satisfied</Text>
+              <Text style={styles.excusesDone}>I&apos;m satisfied</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -103,89 +102,3 @@ export default function ExcusesScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: 20,
-  },
-  back: {
-    color: colors.accent,
-    marginBottom: 25,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 10,
-  },
-  text: {
-    color: colors.textSecondary,
-    marginTop: 8,
-    lineHeight: 22,
-  },
-  card: {
-    backgroundColor: colors.card,
-    padding: 22,
-    borderRadius: 25,
-    marginTop: 25,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  emoji: {
-    fontSize: 45,
-    margin: 15,
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.text,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    padding: 17,
-    borderRadius: 15,
-    alignItems: 'center',
-    marginTop: 25,
-    width: '100%',
-  },
-  buttonText: {
-    color: colors.text,
-    fontWeight: 'bold',
-  },
-  reminder: {
-    backgroundColor: colors.secondary,
-    padding: 18,
-    borderRadius: 20,
-    marginTop: 20,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  popup: {
-    backgroundColor: colors.background,
-    padding: 25,
-    borderRadius: 25,
-    alignItems: 'center',
-  },
-  close: {
-    fontSize: 25,
-    color: colors.text,
-  },
-  excuse: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.text,
-    textAlign: 'center',
-    margin: 20,
-  },
-  done: {
-    color: colors.textSecondary,
-    marginTop: 20,
-  },
-});

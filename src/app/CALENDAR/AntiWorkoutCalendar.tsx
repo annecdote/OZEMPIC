@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Text, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { Spacing } from '../../constants/theme';
+import { colors, fontFamily, styles } from '../../styles';
 
 const MASTER_ANTI_WORKOUT_DB = [
     "Every muscle deserves a cheat day. Especially today.",
@@ -21,73 +21,55 @@ const MASTER_ANTI_WORKOUT_DB = [
     "Resting is an investment in your personal couch comfort."
 ];
 
-export function AntiWorkoutCalendar() {
-  const todayStr = new Date().toISOString().split('T')[0];
-  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
-  const [dailyMessage, setDailyMessage] = useState<string>('');
+function getLocalDateString(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
 
-  useEffect(() => {
-    const parsedDate = new Date(selectedDate + 'T12:00:00');
-    
-    const totalDays = Math.floor(parsedDate.getTime() / (1000 * 60 * 60 * 24));
-    
-    const quoteIndex = Math.abs(totalDays) % MASTER_ANTI_WORKOUT_DB.length;
-    setDailyMessage(MASTER_ANTI_WORKOUT_DB[quoteIndex]);
-  }, [selectedDate]);
+  return `${year}-${month}-${day}`;
+}
+
+export function AntiWorkoutCalendar() {
+  const todayStr = getLocalDateString(new Date());
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+  const [year, month, day] = selectedDate.split('-').map(Number);
+  const totalDays = Date.UTC(year, month - 1, day) / (1000 * 60 * 60 * 24);
+  const quoteIndex = Math.abs(totalDays) % MASTER_ANTI_WORKOUT_DB.length;
+  const dailyMessage = MASTER_ANTI_WORKOUT_DB[quoteIndex];
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.calendarWrapper}>
+    <View style={styles.calendarWrapper}>
+      <View style={styles.calendarCard}>
         <Calendar
           current={todayStr}
           onDayPress={(day) => setSelectedDate(day.dateString)}
           markedDates={{
-            [selectedDate]: { selected: true, disableTouchEvent: false, selectedColor: '#ff4757' }
+            [selectedDate]: { selected: true, disableTouchEvent: false, selectedColor: colors.primary }
           }}
           theme={{
-            selectedDayBackgroundColor: '#ff4757',
-            todayTextColor: '#ff4757',
-            arrowColor: '#ff4757',
-            // @ts-ignore
-            headerStyle: { paddingVertical: 12 },
+            calendarBackground: colors.card,
+            dayTextColor: colors.text,
+            monthTextColor: colors.text,
+            textSectionTitleColor: colors.textSecondary,
+            selectedDayBackgroundColor: colors.primary,
+            selectedDayTextColor: colors.card,
+            todayTextColor: colors.accent,
+            arrowColor: colors.accent,
+            textDayFontFamily: fontFamily,
+            textMonthFontFamily: fontFamily,
+            textDayHeaderFontFamily: fontFamily,
           }}
         />
       </View>
 
-      <View style={styles.messageContainer}>
-        <Text style={styles.messageTitle}>
+      <View style={styles.calendarMessage}>
+        <Text style={styles.calendarMessageTitle}>
           Inspiration for {selectedDate}:
         </Text>
-        <Text style={styles.messageBody}>
-          "{dailyMessage}"
+        <Text style={styles.calendarMessageBody}>
+          &quot;{dailyMessage}&quot;
         </Text>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: { alignSelf: 'stretch', gap: Spacing.three },
-  calendarWrapper: {
-    borderRadius: Spacing.four,
-    overflow: 'hidden',
-    backgroundColor: '#ffffff',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  messageContainer: {
-    gap: Spacing.two,
-    padding: Spacing.four,
-    borderRadius: Spacing.four,
-    backgroundColor: '#fff5f5',
-    borderLeftWidth: 5,
-    borderLeftColor: '#ff4757',
-    minHeight: 100,
-    justifyContent: 'center',
-  },
-  messageTitle: { fontSize: 16, fontWeight: 'bold', color: '#2d4150' },
-  messageBody: { fontSize: 15, fontStyle: 'italic', lineHeight: 22, color: '#4a5568' },
-});
