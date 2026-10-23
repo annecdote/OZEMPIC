@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppBackground from '../../components/appBackground';
 import FoxSprite from '../../components/foxSprite';
@@ -23,34 +23,36 @@ export default function HomeScreen() {
   const [foxAnimationRow, setFoxAnimationRow] = useState(5);
   const storageWriteQueue = useRef(Promise.resolve());
 
-  useEffect(() => {
-    let active = true;
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
 
-    AsyncStorage.getItem(SCORE_STORAGE_KEY)
-      .then(storedScore => {
-        if (!active) return;
-        if (storedScore !== null) {
-          const parsedScore = Number(storedScore);
-          if (!Number.isSafeInteger(parsedScore) || parsedScore < 0) {
-            throw new Error('Saved score is invalid.');
+      AsyncStorage.getItem(SCORE_STORAGE_KEY)
+        .then(storedScore => {
+          if (!active) return;
+          if (storedScore !== null) {
+            const parsedScore = Number(storedScore);
+            if (!Number.isSafeInteger(parsedScore) || parsedScore < 0) {
+              throw new Error('Saved score is invalid.');
+            }
+            setScore(parsedScore);
           }
-          setScore(parsedScore);
-        }
-        setScoreReady(true);
-      })
-      .catch(error => {
-        if (!active) return;
-        setScoreStorageError(
-          error instanceof Error
-            ? `Could not load saved score: ${error.message}`
-            : 'Could not load saved score.',
-        );
-      });
+          setScoreReady(true);
+        })
+        .catch(error => {
+          if (!active) return;
+          setScoreStorageError(
+            error instanceof Error
+              ? `Could not load saved score: ${error.message}`
+              : 'Could not load saved score.',
+          );
+        });
 
-    return () => {
-      active = false;
-    };
-  }, []);
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   useEffect(() => {
     if (!scoreReady) return;
@@ -113,7 +115,9 @@ export default function HomeScreen() {
           />
         </View>
         <View style={styles.nutritionLowerContent}>
-          <FoxSprite size={230} animationRow={foxAnimationRow} />
+          <View style={styles.nutritionFox}>
+            <FoxSprite size={230} animationRow={foxAnimationRow} />
+          </View>
           <View style={styles.nutritionActions}>
             <Pressable
               accessibilityRole="button"
