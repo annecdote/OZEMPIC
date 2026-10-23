@@ -31,7 +31,8 @@
         {
           "backgroundColor": "#F8F4EC"
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,
