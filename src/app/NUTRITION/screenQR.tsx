@@ -5,9 +5,8 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BarcodeFoodResult, lookupBarcode, proteinStarRating } from '../../lib/nutritionAPI';
+import { NUTRITION_SCORE_STORAGE_KEY } from '../../lib/storageKeys';
 import { colors, styles } from '../../styles';
-
-const SCORE_STORAGE_KEY = 'nutrition_score';
 
 export default function QRScannerScreen() {
   const router = useRouter();
@@ -68,7 +67,7 @@ export default function QRScannerScreen() {
     setSavingScore(true);
 
     try {
-      const storedScore = await AsyncStorage.getItem(SCORE_STORAGE_KEY);
+      const storedScore = await AsyncStorage.getItem(NUTRITION_SCORE_STORAGE_KEY);
       const currentScore = storedScore === null ? 0 : Number(storedScore);
       if (!Number.isSafeInteger(currentScore) || currentScore < 0) {
         throw new Error('Saved score is invalid.');
@@ -78,7 +77,7 @@ export default function QRScannerScreen() {
       if (!Number.isSafeInteger(nextScore)) {
         throw new Error('Updated score is outside the supported range.');
       }
-      await AsyncStorage.setItem(SCORE_STORAGE_KEY, String(nextScore));
+      await AsyncStorage.setItem(NUTRITION_SCORE_STORAGE_KEY, String(nextScore));
       goBack();
     } catch (error) {
       setScoreSaveError(

@@ -7,10 +7,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AppBackground from '../../components/appBackground';
 import FoxSprite from '../../components/foxSprite';
 import CarrotSprite from '../../components/carrotSprite';
+import { NUTRITION_SCORE_STORAGE_KEY } from '../../lib/storageKeys';
 import FoodSearchModal from './screenSearch';
 import { styles } from '../../styles';
-
-const SCORE_STORAGE_KEY = 'nutrition_score';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -27,7 +26,7 @@ export default function HomeScreen() {
     useCallback(() => {
       let active = true;
 
-      AsyncStorage.getItem(SCORE_STORAGE_KEY)
+      AsyncStorage.getItem(NUTRITION_SCORE_STORAGE_KEY)
         .then(storedScore => {
           if (!active) return;
           if (storedScore !== null) {
@@ -58,7 +57,7 @@ export default function HomeScreen() {
     if (!scoreReady) return;
 
     storageWriteQueue.current = storageWriteQueue.current
-      .then(() => AsyncStorage.setItem(SCORE_STORAGE_KEY, String(score)))
+      .then(() => AsyncStorage.setItem(NUTRITION_SCORE_STORAGE_KEY, String(score)))
       .then(() => setScoreStorageError(''))
       .catch(error => {
         setScoreStorageError(
