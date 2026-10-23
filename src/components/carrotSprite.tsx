@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Image, View } from 'react-native';
+import { useAudioPlayer } from 'expo-audio';
 import { carrotSpriteImageStyle, styles } from '../styles';
 
 const FRAME_COUNT = 17.8;
@@ -20,6 +21,7 @@ export default function CarrotSprite({
 }: CarrotSpriteProps) {
   const [frame, setFrame] = useState(0);
   const [visible, setVisible] = useState(false);
+  const eatSound = useAudioPlayer(require('../../assets/SOUND/soundEat.mp3'));
 
   useEffect(() => {
     if (animationId === null || animationId === 0) return;
@@ -33,6 +35,9 @@ export default function CarrotSprite({
       if (nextFrame >= FRAME_COUNT) {
         clearInterval(timer);
         setVisible(false);
+        void eatSound.seekTo(0).then(() => eatSound.play()).catch(error => {
+          console.error('Could not play the carrot eating sound.', error);
+        });
         onEaten();
         return;
       }
@@ -40,7 +45,7 @@ export default function CarrotSprite({
     }, 100);
 
     return () => clearInterval(timer);
-  }, [animationId, onDropStart, onEaten]);
+  }, [animationId, eatSound, onDropStart, onEaten]);
 
   if (!visible) return null;
 

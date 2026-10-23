@@ -54,7 +54,7 @@ export async function searchFoods(searchTerm: string): Promise<FoodSearchResult[
   const response = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?${params}`);
 
   if (response.status === 429) {
-    throw new Error('Food search has reached its API request limit. Please try again later.');
+    throw new Error('Food search has reached its API request limit.');
   }
   if (!response.ok) {
     throw new Error(`Food search failed (${response.status}). Please try again.`);

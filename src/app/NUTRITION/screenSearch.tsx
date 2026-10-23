@@ -121,19 +121,22 @@ export default function FoodSearchModal({
                 {searchResults.map(result => {
                   const stars = proteinStarRating(result.protein);
                   return (
-                    <View key={result.id} style={styles.nutritionResultCard}>
+                    <Pressable
+                      key={result.id}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Select ${result.name}`}
+                      onPress={() => {
+                        onSelectFood(stars * 3);
+                        closeSearch();
+                      }}
+                      style={({ pressed }) => [
+                        styles.nutritionResultCard,
+                        pressed && styles.nutritionPressed,
+                      ]}
+                    >
                       <View style={styles.nutritionResultHeading}>
                         <View style={styles.nutritionResultNameContainer}>
-                          <Pressable
-                            accessibilityRole="button"
-                            accessibilityLabel={`Select ${result.name}`}
-                            onPress={() => {
-                              onSelectFood(stars * 3);
-                              closeSearch();
-                            }}
-                          >
-                            <Text style={styles.nutritionResultName}>{result.name}</Text>
-                          </Pressable>
+                          <Text style={styles.nutritionResultName}>{result.name}</Text>
                           <Text style={styles.nutritionResultServing}>Serving: {result.serving}</Text>
                         </View>
                         <View
@@ -152,7 +155,7 @@ export default function FoodSearchModal({
                           ))}
                         </View>
                       </View>
-                    </View>
+                    </Pressable>
                   );
                 })}
               </ScrollView>
