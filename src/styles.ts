@@ -85,12 +85,109 @@ export const styles = StyleSheet.create({
   settingsScreen: {
     ...screenContainer,
     alignItems: 'center',
+    paddingHorizontal: Spacing.four,
+    paddingTop: Spacing.five,
+    gap: Spacing.three,
+  },
+  settingsHeader: {
+    width: '100%',
+    maxWidth: 480,
+    marginBottom: Spacing.one,
+  },
+  settingsTitle: {
+    color: colors.text,
+    fontSize: 30,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+    fontFamily,
+  },
+  settingsSubtitle: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    marginTop: Spacing.one,
+    fontFamily,
+  },
+  settingsCard: {
+    width: '100%',
+    maxWidth: 480,
+    minHeight: 88,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    padding: Spacing.three,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  settingsIconBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
     justifyContent: 'center',
-    padding: Spacing.four,
+    backgroundColor: colors.secondary,
+  },
+  settingsSoundOnIconBadge: {
+    backgroundColor: '#E3F0E4',
+  },
+  settingsMutedIconBadge: {
+    backgroundColor: '#F5E3DC',
+  },
+  settingsClearIconBadge: {
+    backgroundColor: '#FCE7E3',
+  },
+  settingsSoundOnIcon: {
+    color: '#3B7850',
+  },
+  settingsMutedIcon: {
+    color: '#A14C44',
+  },
+  settingsSoundOnText: {
+    color: '#3B7850',
+  },
+  settingsMutedText: {
+    color: '#A14C44',
+  },
+  settingsClearIcon: {
+    color: '#A14C44',
+  },
+  settingsCardCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  settingsCardTitle: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '700',
+    fontFamily,
+  },
+  settingsCardSubtitle: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 17,
+    fontFamily,
+  },
+  settingsCardAction: {
+    color: colors.accent,
+    fontSize: 13,
+    fontWeight: '700',
+    fontFamily,
+  },
+  settingsButtonDisabled: {
+    opacity: 0.6,
+  },
+  settingsError: {
+    color: colors.accent,
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: Spacing.two,
+    fontFamily,
   },
   settingsMessage: {
     color: colors.text,
-    fontSize: 18,
+    fontSize: 14,
+    textAlign: 'center',
     fontFamily,
   },
 
