@@ -57,6 +57,13 @@ export default function ExcusesScreen() {
         </TouchableOpacity>
       </View>
 
+      {excuse !== '' && (
+        <View style={styles.excusesReminder}>
+          <Text style={styles.excusesHeading}>Your Selected Excuse</Text>
+          <Text style={styles.excusesQuote}>{excuse}</Text>
+        </View>
+      )}
+
       <View style={styles.excusesReminder}>
         <Text style={styles.excusesHeading}>💗 Remember</Text>
         <Text style={styles.excusesText}>Taking a break is okay.</Text>
